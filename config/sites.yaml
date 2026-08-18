@@ -1,0 +1,80 @@
+# Study sites for monitoring human-made change on the Ethiopian Nile.
+# Coordinates are WGS84 (lon, lat).
+#
+# gerd: Grand Ethiopian Renaissance Dam, Blue Nile ~11 km upstream of the
+#       Ethiopia–Sudan border (Benishangul-Gumuz region).
+#
+# Customize `analysis_radius_km`, `upstream_km` and add/remove sites as needed.
+# Each site produces its own water-extent and construction-change time series.
+
+sites:
+  - id: gerd
+    name: "Grand Ethiopian Renaissance Dam (GERD)"
+    country: Ethiopia
+    river: "Blue Nile / Abbay"
+    lon: 35.0930
+    lat: 11.2150
+    analysis_radius_km: 30.0        # radius around the dam for change analysis
+    reservoir_upstream_km: 90.0     # how far upstream the reservoir footprint is searched
+    min_reservoir_elevation_m: 500.0  # used only for the DEM-based reservoir context map
+
+  - id: blue-nile-highlands
+    name: "Upper Blue Nile Basin (highlands)"
+    country: Ethiopia
+    river: "Blue Nile / Abbay"
+    lon: 37.4000
+    lat: 11.0000
+    analysis_radius_km: 40.0
+    reservoir_upstream_km: 0.0
+
+# Global pipeline settings
+pipeline:
+  # Time-window used when no explicit dates are given
+  default_lookback_days: 365
+  # Revisit cadence buckets used to assemble the time series
+  collection_config:
+    sentinel-2-l2a:
+      max_items: 24          # most recent scenes kept per site
+      max_cloud_cover: 20.0
+      water_index: ndwi
+      bands: [green, nir]    # B03, B08 (10 m)
+      mask_bands: [scl]
+    sentinel-1-grd:
+      max_items: 24          # most recent scenes kept per site
+      water_index: sar
+      bands: [vv, vh]
+    landsat-c2-l2:
+      max_items: 12
+      max_cloud_cover: 25.0
+      water_index: mndwi
+      bands: [green, swir16]
+
+  # Earth Search STAC endpoint (public, no auth required)
+  stac_url: "https://earth-search.aws.element84.com/v1"
+
+  # Sentinel-1 SAR layer: requires CDSE credentials in .env (see README).
+  # Each GRD scene's VV+VH tiffs are ~1.7 GB and are cached after first download.
+  use_sar: true
+  sar_max_items: 2
+
+  # Output roots (relative to the project root)
+  output_dir: output
+  cache_dir: data/cache
+
+  # Pixels smaller than this (m^2) are dropped from water masks as speckle/noise
+  min_water_region_m2: 250000.0
+
+# OSINT layer configuration
+osint:
+  enabled: true
+  # Google News RSS + custom public feeds (no API keys required)
+  news_queries:
+    - "GERD dam filling"
+    - "Grand Ethiopian Renaissance Dam reservoir"
+    - "Blue Nile dam Ethiopia 2026"
+  custom_feeds: []
+  max_items_per_query: 10
+  # Terms that must appear for a headline to be included
+  required_keywords: [GERD, Renaissance, Blue Nile, Nile, dam, reservoir, Abbay]
+  # Terms that disqualify a headline (generic/irrelevant)
+  exclude_keywords: [sports, recipes, crypto]
