@@ -80,9 +80,11 @@ def build_report(
     lines.append("| Date | Collection | Water area (km²) | NDWI mean | Cloud (%) |")
     lines.append("|---|---|---|---|---|")
     for _, row in series.sort_values(["date", "collection"]).iterrows():
+        ndwi_cell = f"{row['ndwi_mean']:.3f}" if pd.notna(row["ndwi_mean"]) else ""
         lines.append(
             f"| {row['date']} | {row['collection']} | {row['water_area_km2']:,.2f} "
-            f"| {row['ndwi_mean']:.3f} | {row['cloud_cover'] if pd.notna(row['cloud_cover']) else ''} |"
+            f"| {ndwi_cell} "
+            f"| {row['cloud_cover'] if pd.notna(row['cloud_cover']) else ''} |"
         )
     lines.append("")
 

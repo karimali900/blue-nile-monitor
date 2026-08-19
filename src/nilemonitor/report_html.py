@@ -75,8 +75,8 @@ def build_report_html(
     series_rows = "".join(
         f"<tr><td>{r['date'].date()}</td><td>{r['collection']}</td>"
         f"<td>{r['water_area_km2']:,.2f}</td>"
-        f"<td>{r['ndwi_mean']:.3f}</td>"
-        f"<td>{r['cloud_cover']:.1f}</td></tr>"
+        f"<td>{f"{r['ndwi_mean']:.3f}" if pd.notna(r['ndwi_mean']) else ''}</td>"
+        f"<td>{f"{r['cloud_cover']:.1f}" if pd.notna(r['cloud_cover']) else ''}</td></tr>"
         for _, r in series.sort_values(["date", "collection"]).iterrows()
         if pd.notna(r["water_area_km2"])
     )
@@ -208,6 +208,11 @@ def build_report_html(
             "and land clearing.</p></section>"
         )
 
+    s2_last = series[series["collection"] == "sentinel-2-l2a"]["water_area_km2"]
+    s1_last = series[series["collection"] == "sentinel-1-grd"]["water_area_km2"]
+    s2_last = f"{s2_last.iloc[-1]:,.1f} km²" if len(s2_last) else "—"
+    s1_last = f"{s1_last.iloc[-1]:,.1f} km²" if len(s1_last) else "—"
+
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -260,16 +265,16 @@ def build_report_html(
      &nbsp;·&nbsp; Generated: {dt.datetime.now(dt.timezone.utc):%Y-%m-%d %H:%M} UTC
      &nbsp;·&nbsp; Scenes analysed: {len(analysis.readings)}</p>
   <div class="chips">
-    <span class="chip">S2 water (latest): {series[series['collection']=='sentinel-2-l2a']['water_area_km2'].iloc[-1]:,.1f} km²</span>
-    <span class="chip">S1 water (latest): {series[series['collection']=='sentinel-1-grd']['water_area_km2'].iloc[-1]:,.1f} km²</span>
+    <span class="chip">S2 water (latest): {s2_last}</span>
+    <span class="chip">S1 water (latest): {s1_last}</span>
     <span class="chip">Warnings: {len(analysis.alerts)}</span>
     <span class="chip">OSINT items: {len(osint.items) if osint and osint.items else 0}</span>
   </div>
 </header>
 <main>
   <div class="grid">
-    <div class="kpi"><div class="k">Sentinel-2 water</div><div class="v">{series[series['collection']=='sentinel-2-l2a']['water_area_km2'].iloc[-1]:,.1f} km²</div></div>
-    <div class="kpi"><div class="k">Sentinel-1 water</div><div class="v">{series[series['collection']=='sentinel-1-grd']['water_area_km2'].iloc[-1]:,.1f} km²</div></div>
+    <div class="kpi"><div class="k">Sentinel-2 water</div><div class="v">{s2_last}</div></div>
+    <div class="kpi"><div class="k">Sentinel-1 water</div><div class="v">{s1_last}</div></div>
     <div class="kpi"><div class="k">Construction warnings</div><div class="v">{len(analysis.alerts)}</div></div>
     <div class="kpi"><div class="k">Scenes analysed</div><div class="v">{len(analysis.readings)}</div></div>
   </div>
