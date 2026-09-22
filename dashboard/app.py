@@ -28,6 +28,7 @@ L10N = {
     "en": {
         "lang_label": "Language",
         "site": "Site",
+        "site_gerd": "Grand Ethiopian Renaissance Dam (GERD)",
         "lookback": "Lookback (days)",
         "run": "Run analysis now",
         "hero_sub": "Satellite water-extent and construction-change monitoring — Sentinel-1 SAR, "
@@ -62,8 +63,9 @@ L10N = {
         "dl_html": "Download HTML report",
         "no_report": "No report for this run yet.",
         "no_analysis": "No analysis found yet — press **Run analysis now** in the sidebar.",
-        "done": "Analysis complete.",
-        "spinner": "Fetching scenes, computing water masks, gathering news…",
+        "sig_by": "Prepared by",
+        "done": "Analysis ready",
+        "spinner": "Analysis processing now...",
         "no_map": "No interactive map for this run yet.",
         "severity": "Severity",
         "kind": "Type",
@@ -110,9 +112,10 @@ L10N = {
     "ar": {
         "lang_label": "اللغة",
         "site": "الموقع",
+        "site_gerd": "سد النهضة الإثيوبي الكبير (GERD)",
         "lookback": "الفترة الزمنية (يوم)",
         "run": "تشغيل التحليل الآن",
-        "hero_sub": "مراقبة مساحات المياه والتغيرات الإنشائية عبر الأقمار الصناعية — سينتينل-1، سينتينل-2، لاندسات + تقارير المصادر المفتوحة.",
+        "hero_sub": "مراقبة مساحات المياه والتغيرات الإنشائية عبر الأقمار الصناعية للهضبة الاثيوبية وسد النهضة — سينتينل-1، سينتينل-2، لاندسات + تقارير المصادر المفتوحة.",
         "window": "الفترة",
         "metric_s2": "مياه سينتينل-2 (الأحدث)",
         "metric_s1": "مياه سينتينل-1 (الأحدث)",
@@ -143,8 +146,9 @@ L10N = {
         "dl_html": "تحميل التقرير (HTML)",
         "no_report": "لا يوجد تقرير لهذه الجولة بعد.",
         "no_analysis": "لا يوجد تحليل بعد — اضغط **تشغيل التحليل الآن** في القائمة الجانبية.",
-        "done": "اكتمل التحليل.",
-        "spinner": "جاري جلب المشاهد وحساب خرائط المياه وجمع الأخبار…",
+        "sig_by": "إعداد",
+        "done": "التحليل جاهز",
+        "spinner": "التحليل قيد المعالجة الآن...",
         "no_map": "لا توجد خريطة تفاعلية لهذه الجولة بعد.",
         "severity": "الخطورة",
         "kind": "النوع",
@@ -192,9 +196,15 @@ L10N = {
 
 st.set_page_config(page_title="Nile Monitor", layout="wide", page_icon="🛰")
 
+import os as _os
+
+_os.environ.setdefault("GDAL_HTTP_TIMEOUT", "20")
+_os.environ.setdefault("GDAL_HTTP_RETRY_COUNT", "1")
+
 lang = st.sidebar.selectbox(L10N["en"]["lang_label"], ["English", "العربية"], index=0)
 is_ar = lang == "العربية"
 t = L10N["ar" if is_ar else "en"]
+page_title = "مراقبة النيل" if is_ar else "Nile Monitor"
 dir_css = """
 <style>
   html, body, [data-testid="stAppViewContainer"] { direction: rtl; }
@@ -204,18 +214,49 @@ dir_css = """
 
 CSS = dir_css + """
 <style>
-  .stApp { background:#f1f5f9; }
-  section[data-testid="stSidebar"] { background:#0f172a; }
-  section[data-testid="stSidebar"] * { color:#e2e8f0; }
-  .hero { background:linear-gradient(120deg,#0b2a4a 0%,#0e7490 65%,#14b8a6 100%);
-          border-radius:16px; padding:26px 30px; margin-bottom:18px; color:#fff; }
-  .hero h1 { margin:0; font-size:28px; letter-spacing:.3px; }
-  .hero p { margin:4px 0 0; color:#cbe8f2; }
-  div[data-testid="stMetric"] { background:#fff; border:1px solid #e2e8f0; border-radius:12px;
-          padding:12px 16px; box-shadow:0 1px 3px rgba(15,23,42,.06); }
-  div[data-testid="stMetricLabel"] { color:#64748b; }
+  html, body, [data-testid="stAppViewContainer"], .stMarkdown, .stDataFrame, .stPlotlyChart {
+    font-family:'Segoe UI', 'Inter', system-ui, -apple-system, 'Noto Sans Arabic', sans-serif;
+    font-size:16px; color:#062a3f; }
+  .stApp { background:#dcebf8; }
+  section[data-testid="stSidebar"] { background:#071a2c; }
+  section[data-testid="stSidebar"] * { color:#dbeafe; }
+  .hero { background:linear-gradient(120deg,#050d1c 0%,#0a2c4a 60%,#0d3d5c 100%);
+          border-radius:16px; padding:26px 30px; margin-bottom:18px; color:#ffffff;
+          box-shadow:0 4px 14px rgba(5,13,28,.45); }
+  .hero h1 { margin:0; font-size:28px; letter-spacing:.3px; color:#ffffff;
+          font-weight:800; text-shadow:0 2px 6px rgba(0,0,0,.55); }
+  .hero p { margin:6px 0 0; color:#eaf6fd; font-size:15px; font-weight:600;
+          text-shadow:0 1px 3px rgba(0,0,0,.5); }
+  div[data-testid="stMetric"] { background:linear-gradient(135deg,#082c4a 0%,#0e4d6e 100%);
+          border:1px solid #062a3f; border-radius:12px; padding:14px 18px;
+          box-shadow:0 2px 6px rgba(5,13,28,.25); }
+  div[data-testid="stMetricLabel"] { color:#bcdcf0; font-weight:700; font-size:13px;
+          white-space:normal; line-height:1.35; }
+  div[data-testid="stMetricValue"] { color:#ffffff; font-weight:800; font-size:20px; }
+  div[data-testid="stMetricDelta"] { color:#fbbf24; font-weight:700; }
+  [data-testid="stDataFrame"] { background:#dff1ff; border-radius:10px; border:1px solid #9ec7ea;
+          width:100% !important; }
+  .stDataFrame { width:100% !important; }
+  .stPlotlyChart, [data-testid="stPlotlyChart"], .js-plotly-plot { direction:ltr; width:100%; }
+  .js-plotly-plot .plot-container, .js-plotly-plot .svg-container { width:100% !important; }
+  .stPlotlyChart iframe, [data-testid="stPlotlyChart"] iframe { width:100% !important; }
+  [data-testid="stDataFrame"] thead th {
+    background:#082c4a !important; color:#ffffff !important; font-weight:700; }
+  [data-testid="stDataFrame"] tbody td, [data-testid="stDataFrame"] tbody tr {
+    background:#dff1ff !important; color:#062a3f; font-weight:500; }
+  [data-testid="stExpander"], [data-testid="stExpander"] details { background:#dff1ff; border-radius:10px;
+          border:1px solid #9ec7ea; }
+  [data-testid="stExpander"] summary { color:#062a3f; font-weight:700; }
   .stTabs [data-baseweb="tab-list"] { gap:6px; }
-  .stTabs [data-baseweb="tab"] { border-radius:999px; padding:6px 18px; }
+  .stTabs [data-baseweb="tab"], .stTabs [role="tab"] {
+          border-radius:999px; padding:6px 18px; font-weight:700;
+          color:#062a3f !important; background:#e8f4ff !important;
+          border:1px solid #9ec7ea; }
+  .stTabs [data-baseweb="tab"][aria-selected="true"], .stTabs [role="tab"][aria-selected="true"] {
+          background:#082c4a !important; color:#ffffff !important; border-color:#082c4a; }
+  h1, h2, h3, h4 { color:#062a3f; font-weight:800; }
+  .stMarkdown strong { color:#062a3f; }
+  [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p { color:#1d4e6b; font-weight:600; }
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
@@ -223,10 +264,102 @@ st.markdown(CSS, unsafe_allow_html=True)
 cfg = load_config()
 site_ids = [s.id for s in cfg.sites]
 
+
+def _col_last(series: pd.DataFrame, col: str) -> float | None:
+    sub = series[series["collection"] == col].sort_values("date")
+    return float(sub["water_area_km2"].iloc[-1]) if not sub.empty else None
+
+
+def _col_base(series: pd.DataFrame, col: str) -> float | None:
+    sub = series[series["collection"] == col].sort_values("date")
+    return float(sub["water_area_km2"].iloc[0]) if not sub.empty else None
+
+
 with st.sidebar:
-    st.markdown("## 🛰 Nile Monitor")
-    site_id = st.selectbox(t["site"], site_ids, format_func=lambda i: cfg.site(i).name)
+    st.markdown(f"## 🛰 {page_title}")
+    site_id = st.selectbox(t["site"], site_ids, format_func=lambda i: t.get(f"site_{i}", cfg.site(i).name))
     site = cfg.site(site_id)
+    out_dir = cfg.output_dir / site_id
+
+    # ---- Monitoring reference panel (status board) ----
+    st.divider()
+    st.markdown(f"### 📋 {t['watch_header']}")
+    panel_csv = out_dir / "water_area_timeseries.csv"
+    if panel_csv.exists():
+        panel_series = pd.read_csv(panel_csv)
+        panel_series["date"] = pd.to_datetime(panel_series["date"])
+        panel_alerts: list = []
+        panel_alerts_path = out_dir / "alerts.json"
+        if panel_alerts_path.exists():
+            try:
+                panel_alerts = json.loads(panel_alerts_path.read_text()).get("alerts", [])
+            except (json.JSONDecodeError, OSError):
+                panel_alerts = []
+        p_s2_last = _col_last(panel_series, "sentinel-2-l2a")
+        p_s2_base = _col_base(panel_series, "sentinel-2-l2a")
+        p_s1_last = _col_last(panel_series, "sentinel-1-grd")
+
+        st.markdown(f"**{t['watch_construction']}**")
+        if panel_alerts:
+            high = sum(1 for a in panel_alerts if a["severity"] == "HIGH")
+            med = sum(1 for a in panel_alerts if a["severity"] == "MEDIUM")
+            st.markdown(
+                f":red[**{len(panel_alerts)} {t['watch_active']}**]"
+                f"<br><small>HIGH: {high} · MEDIUM: {med}</small>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(f":green[**{t['watch_none']}**]")
+
+        st.markdown(f"**{t['watch_reservoir']}**")
+        if p_s2_last is not None and p_s2_base is not None:
+            delta = p_s2_last - p_s2_base
+            arrow = ":red[▲]" if delta > 0 else (":green[▼]" if delta < 0 else ":gray[—]")
+            st.markdown(
+                f"**{p_s2_last:,.1f} km²** {arrow} {delta:+,.1f} km²"
+                f"<br><small>{t['watch_storage_proxy']}</small>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown("—")
+
+        st.markdown(f"**{t['watch_flow']}**")
+        if p_s2_base and p_s2_last:
+            rel = (p_s2_last - p_s2_base) / abs(p_s2_base) * 100
+            if rel > 0.5:
+                flow = f":blue[▲ {t['watch_filling']}]"
+            elif rel < -0.5:
+                flow = f":blue[▼ {t['watch_releasing']}]"
+            else:
+                flow = f":gray[— {t['watch_stable']}]"
+            st.markdown(f"{flow}<br><small>{t['watch_flow_note']}</small>", unsafe_allow_html=True)
+        else:
+            st.markdown("—")
+
+        st.markdown(f"**{t['watch_course']}**")
+        st.markdown(f":violet[🛰 {t['watch_course_note']}]")
+        if p_s1_last is not None:
+            st.markdown(f"<small>{t['watch_s1_latest']}: **{p_s1_last:,.1f} km²**</small>", unsafe_allow_html=True)
+
+        panel_osint: list = []
+        panel_osint_path = out_dir / "osint_news.json"
+        if panel_osint_path.exists():
+            try:
+                panel_osint = json.loads(panel_osint_path.read_text()).get("items", [])[:3]
+            except (json.JSONDecodeError, OSError):
+                panel_osint = []
+        if panel_osint:
+            st.markdown(f"**{t['watch_osint']}**")
+            for it in panel_osint:
+                st.markdown(f"<small>• {it.get('title', '')[:80]}</small>", unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div style='background:#e2f7e6;border:1px solid #7cc98a;border-radius:8px;"
+                    f"padding:10px 12px;color:#0b5e2e;font-weight:700;font-size:15px;'>"
+                    f"⚠ {t['no_analysis']}</div>",
+                    unsafe_allow_html=True)
+
+    # ---- Controls ----
+    st.divider()
     st.markdown(f"**{site.river} — {site.country}**")
     st.markdown(f"{site.lat:.4f} N, {site.lon:.4f} E")
     days = st.slider(t["lookback"], 30, 3650, 365)
@@ -238,14 +371,19 @@ date_from = date_to - dt.timedelta(days=days)
 st.markdown(
     f"""
     <div class="hero">
-      <h1>🛰 {site.name}</h1>
-      <p>{t['hero_sub']} {t['window']}: {date_from} → {date_to}.</p>
+      <div style="display:flex;align-items:center;gap:18px;">
+        <img src="/app/static/GERD.jpg" alt="GERD"
+             style="width:110px;height:auto;border-radius:12px;border:2px solid #ffffff;
+                    box-shadow:0 3px 10px rgba(0,0,0,.5);"/>
+        <div>
+          <h1 style="margin:0;">🛰 {t.get(f"site_{site_id}", site.name)}</h1>
+          <p style="margin:6px 0 0;">{t['hero_sub']} {t['window']}: {date_from} → {date_to}.</p>
+        </div>
+      </div>
     </div>
     """,
     unsafe_allow_html=True,
 )
-
-out_dir = cfg.output_dir / site_id
 
 if run_now:
     with st.spinner(t["spinner"]):
@@ -254,7 +392,10 @@ if run_now:
 
 csv_path = out_dir / "water_area_timeseries.csv"
 if not csv_path.exists():
-    st.info(t["no_analysis"])
+    st.markdown(f"<div style='background:#e2f7e6;border:1px solid #7cc98a;border-radius:10px;"
+                f"padding:14px 18px;color:#0b5e2e;font-weight:700;font-size:17px;'>"
+                f"⚠ {t['no_analysis']}</div>",
+                unsafe_allow_html=True)
     st.stop()
 
 series = pd.read_csv(csv_path)
@@ -265,82 +406,20 @@ alerts_path = out_dir / "alerts.json"
 if alerts_path.exists():
     alerts = json.loads(alerts_path.read_text()).get("alerts", [])
 
-
-def latest_of(col: str) -> float | None:
-    sub = series[series["collection"] == col].sort_values("date")
-    return float(sub["water_area_km2"].iloc[-1]) if not sub.empty else None
-
-
-def baseline_of(col: str) -> float | None:
-    sub = series[series["collection"] == col].sort_values("date")
-    return float(sub["water_area_km2"].iloc[0]) if not sub.empty else None
-
-
-s2_last, s2_base = latest_of("sentinel-2-l2a"), baseline_of("sentinel-2-l2a")
-s1_last, s1_base = latest_of("sentinel-1-grd"), baseline_of("sentinel-1-grd")
-
-# ---- Monitoring reference panel (status board, always visible) ----
-with st.sidebar:
-    st.divider()
-    st.markdown(f"### 📋 {t['watch_header']}")
-
-    st.markdown(f"**{t['watch_construction']}**")
-    if alerts:
-        high = sum(1 for a in alerts if a["severity"] == "HIGH")
-        med = sum(1 for a in alerts if a["severity"] == "MEDIUM")
-        st.markdown(
-            f":red[**{len(alerts)} {t['watch_active']}**]"
-            f"<br><small>HIGH: {high} · MEDIUM: {med}</small>",
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(f":green[**{t['watch_none']}**]")
-
-    st.markdown(f"**{t['watch_reservoir']}**")
-    if s2_last is not None and s2_base is not None:
-        delta = s2_last - s2_base
-        arrow = ":red[▲]" if delta > 0 else (":green[▼]" if delta < 0 else ":gray[—]")
-        st.markdown(
-            f"**{s2_last:,.1f} km²** {arrow} {delta:+,.1f} km²"
-            f"<br><small>{t['watch_storage_proxy']}</small>",
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown("—")
-
-    st.markdown(f"**{t['watch_flow']}**")
-    if s2_base and s2_last:
-        rel = (s2_last - s2_base) / abs(s2_base) * 100
-        if rel > 0.5:
-            flow = f":blue[▲ {t['watch_filling']}]"
-        elif rel < -0.5:
-            flow = f":blue[▼ {t['watch_releasing']}]"
-        else:
-            flow = f":gray[— {t['watch_stable']}]"
-        st.markdown(f"{flow}<br><small>{t['watch_flow_note']}</small>", unsafe_allow_html=True)
-    else:
-        st.markdown("—")
-
-    st.markdown(f"**{t['watch_course']}**")
-    st.markdown(f":violet[🛰 {t['watch_course_note']}]")
-    if s1_last is not None:
-        st.markdown(f"<small>{t['watch_s1_latest']}: **{s1_last:,.1f} km²**</small>", unsafe_allow_html=True)
-
-    osint_items: list = []
-    _np = out_dir / "osint_news.json"
-    if _np.exists():
-        try:
-            osint_items = json.loads(_np.read_text()).get("items", [])[:3]
-        except (json.JSONDecodeError, OSError):
-            osint_items = []
-    if osint_items:
-        st.markdown(f"**{t['watch_osint']}**")
-        for it in osint_items:
-            st.markdown(f"<small>• {it.get('title', '')[:80]}</small>", unsafe_allow_html=True)
+s2_last, s2_base = _col_last(series, "sentinel-2-l2a"), _col_base(series, "sentinel-2-l2a")
+s1_last, s1_base = _col_last(series, "sentinel-1-grd"), _col_base(series, "sentinel-1-grd")
 
 c1, c2, c3, c4 = st.columns(4)
-c1.metric(t["metric_s2"], f"{s2_last:,.1f} km²", f"{s2_last - s2_base:+,.1f} {t['vs_baseline']}" if s2_base else None)
-c2.metric(t["metric_s1"], f"{s1_last:,.1f} km²", f"{s1_last - s1_base:+,.1f} {t['vs_baseline']}" if s1_base else None)
+c1.metric(
+    t["metric_s2"],
+    f"{s2_last:,.1f} km²" if s2_last is not None else "—",
+    f"{s2_last - s2_base:+,.1f} {t['vs_baseline']}" if (s2_last is not None and s2_base is not None) else None,
+)
+c2.metric(
+    t["metric_s1"],
+    f"{s1_last:,.1f} km²" if s1_last is not None else "—",
+    f"{s1_last - s1_base:+,.1f} {t['vs_baseline']}" if (s1_last is not None and s1_base is not None) else None,
+)
 c3.metric(t["metric_alerts"], f"{len(alerts)}", None)
 c4.metric(t["metric_scenes"], f"{len(series)}", None)
 
@@ -359,7 +438,12 @@ with tab_overview:
             color_discrete_map={"Sentinel-2": "#0e7490", "Sentinel-1": "#f59e0b", "Landsat": "#16a34a"},
             template="plotly_white",
         )
-        fig.update_layout(height=420, legend_title=t["collection"], yaxis_title=f"km²")
+        fig.update_layout(height=420, legend=dict(orientation="h", y=1.18, x=0),
+                          yaxis_title=f"km²",
+                          paper_bgcolor="#dcebf8", plot_bgcolor="#dcebf8",
+                          font=dict(family="Segoe UI, sans-serif"),
+                          title=dict(text=t["chart_sub"], x=0.5,
+                                     font=dict(size=17, color="#0b7a3b", family="Segoe UI, sans-serif")))
         st.plotly_chart(fig, use_container_width=True)
     with right:
         st.subheader(t["sum_header"])
@@ -369,7 +453,7 @@ with tab_overview:
         merged["collection"] = merged["collection"].map(lambda c: COLLECTION_NAMES.get(c, c))
         merged["Δ km²"] = (merged["water_area_km2_latest"] - merged["water_area_km2_base"]).round(2)
         st.dataframe(
-            merged[[
+            merged.rename(columns={"collection": t["collection"]})[[
                 t["collection"], f"water_area_km2_{'base'}", f"water_area_km2_{'latest'}", "Δ km²"
             ]].rename(columns={
                 f"water_area_km2_base": t["col_base"] + " km²",
@@ -377,24 +461,24 @@ with tab_overview:
             }),
             hide_index=True, use_container_width=True,
         )
-        st.subheader(t["map_header"])
-        map_html = out_dir / "interactive_map.html"
-        if map_html.exists():
-            import streamlit.components.v1 as components
+    st.subheader(t["map_header"])
+    map_html = out_dir / "interactive_map.html"
+    if map_html.exists():
+        import streamlit.components.v1 as components
 
-            components.html(map_html.read_text(), height=520, scrolling=True)
-        else:
-            st.warning(t["no_map"])
-        with st.expander(t["full_table"]):
-            tab = series.copy()
-            tab["collection"] = tab["collection"].map(lambda c: COLLECTION_NAMES.get(c, c))
-            st.dataframe(
-                tab.rename(columns={
-                    "date": t["date"], "water_area_km2": t["water_area"],
-                    "ndwi_mean": t["ndwi"], "cloud_cover": t["cloud"], "collection": t["collection"],
-                }),
-                hide_index=True, use_container_width=True,
-            )
+        components.html(map_html.read_text(), height=620, scrolling=True)
+    else:
+        st.warning(t["no_map"])
+    with st.expander(t["full_table"]):
+        tab = series.copy()
+        tab["collection"] = tab["collection"].map(lambda c: COLLECTION_NAMES.get(c, c))
+        st.dataframe(
+            tab.rename(columns={
+                "date": t["date"], "water_area_km2": t["water_area"],
+                "ndwi_mean": t["ndwi"], "cloud_cover": t["cloud"], "collection": t["collection"],
+            }),
+            hide_index=True, use_container_width=True,
+        )
 
 with tab_imagery:
     st.subheader(t["img_header"])
@@ -430,7 +514,8 @@ with tab_alerts:
             color_discrete_map={"HIGH": "#e11d48", "MEDIUM": "#f59e0b", "LOW": "#22c55e"},
             template="plotly_white",
         )
-        fig.update_layout(height=420, xaxis_title=t["lon"], yaxis_title=t["lat"])
+        fig.update_layout(height=420, xaxis_title=t["lon"], yaxis_title=t["lat"],
+                          paper_bgcolor="#dcebf8", plot_bgcolor="#dcebf8", font=dict(family="Segoe UI, sans-serif"))
         st.plotly_chart(fig, use_container_width=True)
         if (out_dir / "alerts_map.png").exists():
             st.image(str(out_dir / "alerts_map.png"), caption=t["alerts_caption"], use_container_width=True)
@@ -497,3 +582,13 @@ with tab_report:
             st.markdown(md_path.read_text())
     else:
         st.info(t["no_report"])
+
+st.markdown(
+    f"""
+    <div style="margin-top:26px;padding-top:12px;border-top:2px solid #9ec7ea;
+                text-align:center;color:#0b5e2e;font-weight:700;font-size:14px;">
+      ✍ {t['sig_by']} Karim Ali — 90.karim@gmail.com
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
